@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_FORMAT1">[%-5level][%d{yyyy-MM-dd HH:mm:ss}] %m%n</Property>
+        <Property name="LOG_FORMAT2">%highlight{[%5p]}{FATAL=bg_red, ERROR=red, INFO=green, DEBUG=blue}%highlight{[%d{yyyy-MM-dd HH:mm:ss}]}{cyan} %msg%n</Property>
+        <Property name="LOG_FILE_PATH">./logs</Property>
+        <Property name="LOG_FILE_NAME">petra</Property>
+    </Properties>
+    <Appenders>
+    	<!-- Console Appender -->
+        <Console name="Console_Appender" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${LOG_FORMAT1}" disableAnsi="false" />
+        </Console>
+        <!-- Rolling File Appender -->
+        <RollingFile name="File_Appender" fileName="${LOG_FILE_PATH}/${LOG_FILE_NAME}.log" filePattern="${LOG_FILE_PATH}/${LOG_FILE_NAME}_%d{yyyy-MM-dd}_%i.log">
+            <PatternLayout pattern="${LOG_FORMAT1}" />
+            <Policies>
+            	<!-- 10MB 용량별 로그 파일 생성 -->
+            	<SizeBasedTriggeringPolicy size="10MB" />
+    			<!-- 날짜별 로그 파일 생성 -->
+    			<TimeBasedTriggeringPolicy module="true" interval="1" />
+   			</Policies>
+
+   			<!-- max : 로그 파일 최대 개수
+   			     fileIndex : 로그 파일 최대 개수가 초과된 경우 삭제되는 파일 설정
+   			     min - 작은 index부터 삭제 / max - 큰 index부터 삭제 -->
+   			<DefaultRolloverStrategy max="500" fileIndex="min" />
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+    	<!-- ROOT -->
+        <Root level="INFO">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Root>
+        <!-- SPRING -->
+        <Logger name="org.springframework" level="WARN" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+        <!-- APACHE -->
+        <Logger name="org.apache" level="WARN" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+        <!-- SQL -->
+        <Logger name="jdbc.audit" level="WARN" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+        <Logger name="jdbc.connection" level="WARN" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+        <Logger name="jdbc.resultset" level="OFF" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+        <Logger name="jdbc.sqlonly" level="OFF" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+        <Logger name="jdbc.sqltiming" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+        <Logger name="jdbc.resultsettable" level="OFF" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+        <!-- project -->
+        <Logger name="com.sinsiway.petra" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console_Appender" />
+            <AppenderRef ref="File_Appender" />
+        </Logger>
+    </Loggers>
+</Configuration>

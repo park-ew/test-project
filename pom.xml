@@ -73,6 +73,75 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- log4jdbc 개발중에 보다 상세한 로그를 확인하기 위한 log4j -->
+        <dependency>
+            <groupId>org.bgee.log4jdbc-log4j2</groupId>
+            <artifactId>log4jdbc-log4j2-jdbc4</artifactId>
+            <version>1.16</version>
+        </dependency>
+
+        <!-- Java에서 JSON 인코더/디코더를 구현 또한 JSON과 XML, HTTP 헤더, 쿠키 및 CDL 사이를 변환하는 기능도 포함 -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20220320</version>
+        </dependency>
+
+        <!-- 서버로부터 응답으로 반환되는 JSON 데이터의 표현 또는 뷰를 개발자가 제어할 수 있게 해줌 -->
+        <dependency>
+            <groupId>net.sf.json-lib</groupId>
+            <artifactId>json-lib-ext-spring</artifactId>
+            <version>1.0.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- JSON 데이터와 Java 객체 간의 변환을 처리하기 위한 Jackson 라이브러리 -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.13</version>
+        </dependency>
+
+        <!-- Java 객체와 JSON 데이터 간의 변환을 처리하는 기능을 제공하는 모듈 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.5</version>
+        </dependency>
+
+        <!-- JSON Web Token (JWT)의 생성, 검증 및 처리를 위한 라이브러리 -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.1</version>
+        </dependency>
+
+        <!-- XML 문서와 Java 객체 간의 매핑을 자동화하는 API 및 도구를 제공하는 라이브러리 -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+
+        <!-- Base64 및 Hexadecimal과 같은 다양한 형식을 위한 간단한 인코더 및 디코더 -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+        </dependency>
+
+        <!-- postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.5.1</version>
+        </dependency>
+
         <!-- local log4j -->
         <dependency>
             <groupId>sinsiway</groupId>

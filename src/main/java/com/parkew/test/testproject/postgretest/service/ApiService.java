@@ -10,6 +10,9 @@ import com.parkew.test.testproject.postgretest.vo.PtSqlTestVo;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,93 +74,79 @@ public class ApiService {
         try {
             Class.forName("net.sf.log4jdbc.sql.jdbcapi.DriverSpy");
 
-
             if(controllerReqDto.isBatchFlag()) {
                 if(Utils.isEqualText(controllerReqDto.getSqlType(), "insert1")) {
                     conn = DriverManager.getConnection(controllerReqDto.getUrl(), controllerReqDto.getUser(), controllerReqDto.getPassword());
                     conn.setAutoCommit(false);
-                    List<PtSessTestVo> ptSessTestVoList = new ArrayList<>();
-                    long startReadyTime = System.currentTimeMillis();
-                    for(int i = 1; i <= controllerReqDto.getIdx(); i++) {
-                        int infoIdx = Utils.makeRandomInteger(15);
-                        String str = String.valueOf(userInfo.get(Integer.valueOf(infoIdx)));
-                        ptSessTestVoList.add(Utils.makePtSessTestVo(i, str));
-                    }
-                    long endReadyTime = System.currentTimeMillis();
-                    long readyTime = endReadyTime - startReadyTime;
 
-                    Logger.info("준비 시간: "+ptSessTestVoList.size()+"건 준비 "+readyTime+"ms");
 
                     String insertSql = "INSERT INTO public.PT_SESS_TEST(SID, USER_ID, USER_NAME, USER_ROLE, USER_LEVEL, USER_PHONE, ORG_ONE_NAME, ORG_TWO_NAME, ORG_THREE_NAME, ORG_FOUR_NAME, ORG_FIVE_NAME, DB_ID, DB_OS_TYPE, DB_PROGRAM, DB_TYPE, DB_IP, DB_PORT, DB_INSTANCE, DB_SCHEMA, RESERVED) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    if(Utils.isEqualText(controllerReqDto.getTableName(), "pt_sess_test_soha")){
+                        insertSql = "INSERT INTO PT_SESS_TEST(SID, USER_ID, USER_NAME, USER_ROLE, USER_LEVEL, USER_PHONE, ORG_ONE_NAME, ORG_TWO_NAME, ORG_THREE_NAME, ORG_FOUR_NAME, ORG_FIVE_NAME, DB_ID, DB_OS_TYPE, DB_PROGRAM, DB_TYPE, DB_IP, DB_PORT, DB_INSTANCE, DB_SCHEMA, RESERVED) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    }
                     Logger.info("sql: "+insertSql);
 
                     preStmt = conn.prepareStatement(insertSql);
-                    int i = 1;
                     long startJdbcTime = System.currentTimeMillis();
-                    for(PtSessTestVo dto : ptSessTestVoList) {
-                        preStmt.setLong(1, dto.getSid());
-                        preStmt.setString(2, dto.getId());
-                        preStmt.setString(3, dto.getName());
-                        preStmt.setString(4, dto.getRole());
-                        preStmt.setInt(5, dto.getLevel());
-                        preStmt.setString(6, dto.getPhone());
-                        preStmt.setString(7, dto.getOrgOne());
-                        preStmt.setString(8, dto.getOrgTwo());
-                        preStmt.setString(9, dto.getOrgThree());
-                        preStmt.setString(10, dto.getOrgFour());
-                        preStmt.setString(11, dto.getOrgFive());
-                        preStmt.setLong(12, dto.getDbId());
-                        preStmt.setString(13, dto.getOs());
-                        preStmt.setString(14, dto.getProgram());
-                        preStmt.setString(15, dto.getDb());
-                        preStmt.setString(16, dto.getIp());
-                        preStmt.setInt(17, dto.getPort());
-                        preStmt.setString(18, dto.getInstance());
-                        preStmt.setString(19, dto.getSchema());
-                        preStmt.setString(20, dto.getReserved());
+                    int idx = controllerReqDto.getIdx();
+                    for(int i = 1; i <= idx; i++) {
+                        int infoIdx = Utils.makeRandomInteger(15);
+                        String str = String.valueOf(userInfo.get(Integer.valueOf(infoIdx)));
+                        String[] strSplit = str.split(",");
+
+                        preStmt.setLong(1, i);
+                        preStmt.setString(2, strSplit[0]);
+                        preStmt.setString(3, strSplit[1]);
+                        preStmt.setString(4, strSplit[2]);
+                        preStmt.setInt(5, Integer.valueOf(strSplit[3]));
+                        preStmt.setString(6, strSplit[4]);
+                        preStmt.setString(7, strSplit[5]);
+                        preStmt.setString(8, strSplit[6]);
+                        preStmt.setString(9, strSplit[7]);
+                        preStmt.setString(10, strSplit[8]);
+                        preStmt.setString(11, strSplit[9]);
+                        preStmt.setLong(12, Long.valueOf(strSplit[10]));
+                        preStmt.setString(13, strSplit[11]);
+                        preStmt.setString(14, strSplit[12]);
+                        preStmt.setString(15, strSplit[13]);
+                        preStmt.setString(16, strSplit[14]);
+                        preStmt.setInt(17, Integer.valueOf(strSplit[15]));
+                        preStmt.setString(18, strSplit[16]);
+                        preStmt.setString(19, strSplit[17]);
+                        preStmt.setString(20, "");
                         preStmt.addBatch();
                         preStmt.clearParameters();
 
-                        if(i%100000 == 0) {
+                        if(i%10000 == 0) {
                             preStmt.executeBatch();
                             preStmt.clearBatch();
                             conn.commit();
+                            System.out.println("진행 상황: " + i + "건");
                         }
-                        if(i%1000000 == 0) {
-                            System.out.println("insert " + i + "개 완료");
+
+                        int percentage = (i * 100) / idx;
+                        if (i % (idx / 10) == 0) {
+                            System.out.println("진행 상황: " + percentage + "%");
                         }
-                        i++;
                     }
-                    preStmt.executeBatch();
-                    preStmt.clearBatch();
+
                     preStmt.close();
                     conn.close();
+
                     long endJdbcTime = System.currentTimeMillis();
                     long jdbcTime = endJdbcTime - startJdbcTime;
-
 
                     return ServiceResDto.result(jdbcTime+"ms", "Insert1 Success");
 
                 } else if(Utils.isEqualText(controllerReqDto.getSqlType(), "insert2")) {
-                    long startReadyTime = System.currentTimeMillis();
-                    List<PtSqlTestVo> ptSqlTestVoList = new ArrayList<>();
-                    for(int i = 1; i <= controllerReqDto.getIdx(); i++) {
-                        int range = Utils.makeRandomInteger(100); //1mb 1048576
-                        String sqlType = sqlTypeInfo.get(Integer.valueOf(Utils.makeRandomInteger(5)));
-                        int sid = Utils.makeRandomInteger(controllerReqDto.getIdx());
-                        ptSqlTestVoList.add(PtSqlTestVo.insertAll(i, sid, sqlType, range, RandomStringUtils.randomAlphabetic(range), ""));
-                    }
-                    long endReadyTime = System.currentTimeMillis();
-                    long readyTime = endReadyTime - startReadyTime;
-
-                    Logger.info("준비 시간: "+ptSqlTestVoList.size()+"건 준비 "+readyTime+"ms");
+                    int idx = controllerReqDto.getIdx();
 
                     /* PT_SQL_TEST_TEXT */
                     conn = DriverManager.getConnection(controllerReqDto.getUrl(), controllerReqDto.getUser(), controllerReqDto.getPassword());
                     preStmt = conn.prepareStatement("INSERT INTO public.PT_SQL_TEST_TEXT(SQL_ID, SID, SQL_TYPE, SQL_SIZE, SQL_TEXT, RESERVED) VALUES (?, ?, ?, ?, ?, ?)");
                     Logger.info("sql: "+"INSERT INTO public.PT_SQL_TEST_TEXT(SQL_ID, SID, SQL_TYPE, SQL_SIZE, SQL_TEXT, RESERVED) VALUES (?, ?, ?, ?, ?, ?)");
                     long startJdbcTime = System.currentTimeMillis();
-                    addBatchPtSqlTestVo("PT_SQL_TEST_TEXT", conn, preStmt, ptSqlTestVoList);
+                    addBatchPtSqlTestVo(idx, "PT_SQL_TEST_TEXT", conn, preStmt);
                     long endJdbcTime = System.currentTimeMillis();
                     long jdbcTime1 = endJdbcTime - startJdbcTime;
                     preStmt = null;
@@ -168,7 +157,7 @@ public class ApiService {
                     preStmt = conn.prepareStatement("INSERT INTO public.PT_SQL_TEST_VARCHAR(SQL_ID, SID, SQL_TYPE, SQL_SIZE, SQL_TEXT, RESERVED) VALUES (?, ?, ?, ?, ?, ?)");
                     Logger.info("sql: "+"INSERT INTO public.PT_SQL_TEST_VARCHAR(SQL_ID, SID, SQL_TYPE, SQL_SIZE, SQL_TEXT, RESERVED) VALUES (?, ?, ?, ?, ?, ?)");
                     long startJdbcTime2 = System.currentTimeMillis();
-                    addBatchPtSqlTestVo("PT_SQL_TEST_VARCHAR", conn, preStmt, ptSqlTestVoList);
+                    addBatchPtSqlTestVo(idx, "PT_SQL_TEST_VARCHAR", conn, preStmt);
                     long endJdbcTime2 = System.currentTimeMillis();
                     long jdbcTime2 = endJdbcTime2 - startJdbcTime2;
                     preStmt = null;
@@ -177,33 +166,16 @@ public class ApiService {
                     String jdbcTime = "TEXT: "+jdbcTime1+"ms, VARCHAR: "+jdbcTime2+"ms";
                     return ServiceResDto.result(jdbcTime, "Insert2 Success");
                 } else if(Utils.isEqualText(controllerReqDto.getSqlType(), "insert3")) {
-                    long startReadyTime = System.currentTimeMillis();
-                    List<PtSeparateTestVo> ptSeparateTestVoList = new ArrayList<>();
-                    for(int seqId = 1; seqId <= controllerReqDto.getIdx(); seqId++) {
-                        String sqlType = sqlTypeInfo.get(Integer.valueOf(Utils.makeRandomInteger(5)));
-                        String sqlText = sqlSeparateInfo.get(Integer.valueOf(Utils.makeRandomInteger(7)));
-                        int sid = Utils.makeRandomInteger(controllerReqDto.getIdx());
-
-                        int j = 1;
-                        for(String str : splitString(sqlText, 100)) {
-                            ptSeparateTestVoList.add(PtSeparateTestVo.insertAll(seqId, sid, j, sqlType, str.length(), str, ""));
-                            j++;
-                        }
-
-                    }
-                    long endReadyTime = System.currentTimeMillis();
-                    long readyTime = endReadyTime - startReadyTime;
-
-                    Logger.info("준비 시간: "+controllerReqDto.getIdx()+"("+ptSeparateTestVoList.size()+")건 준비 "+readyTime+"ms");
-
                     /* PT_SEPARATE_TEST */
                     conn = DriverManager.getConnection(controllerReqDto.getUrl(), controllerReqDto.getUser(), controllerReqDto.getPassword());
                     preStmt = conn.prepareStatement("INSERT INTO public.PT_SEPARATE_TEST(SQL_ID, SID, SQL_NO, SQL_TYPE, SQL_SIZE, SQL_TEXT, RESERVED) VALUES (?, ?, ?, ?, ?, ?, ?)");
                     Logger.info("sql: "+"INSERT INTO public.PT_SEPARATE_TEST(SQL_ID, SID, SQL_NO, SQL_TYPE, SQL_SIZE, SQL_TEXT, RESERVED) VALUES (?, ?, ?, ?, ?, ?, ?)");
+
                     long startJdbcTime = System.currentTimeMillis();
-                    addBatchPtSeparateTest("PT_SEPARATE_TEST", conn, preStmt, ptSeparateTestVoList);
+                    addBatchPtSeparateTest(controllerReqDto.getIdx(), "PT_SEPARATE_TEST", conn, preStmt);
                     long endJdbcTime = System.currentTimeMillis();
                     long jdbcTime = endJdbcTime - startJdbcTime;
+
                     preStmt = null;
                     conn = null;
 
@@ -292,69 +264,98 @@ public class ApiService {
         return ServiceResDto.result(0+"ms", "");
     }
 
-    private void addBatchPtSqlTestVo(String table, Connection conn, PreparedStatement preStmt, List<PtSqlTestVo> ptSqlTestVoList) throws SQLException {
+    private void addBatchPtSqlTestVo(int idx, String table, Connection conn, PreparedStatement preStmt) throws SQLException {
         conn.setAutoCommit(false);
-        int i = 1;
-        for(PtSqlTestVo vo : ptSqlTestVoList) {
-            preStmt.setLong(1, vo.getSqlId());
-            preStmt.setLong(2, vo.getSid());
-            preStmt.setString(3, vo.getSqlType());
-            preStmt.setInt(4, vo.getSqlSize());
-            preStmt.setString(5, vo.getSqlText());
-            preStmt.setString(6, vo.getReserved());
+        String filePath = "/Users/parkew/dev/dev_utils/5mb.txt"; // 읽어올 텍스트 파일 경로
+        String content = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                // 각 줄의 내용을 사용하거나 출력할 수 있습니다.
+                content+= line;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for(int i = 1; i <= idx; i++) {
+            String sqlType = sqlTypeInfo.get(Integer.valueOf(Utils.makeRandomInteger(5)));
+            int sid = Utils.makeRandomInteger(idx);
+
+            preStmt.setLong(1, i);
+            preStmt.setLong(2, sid);
+            preStmt.setString(3, sqlType);
+            preStmt.setInt(4, content.length());
+            preStmt.setString(5, content);
+            preStmt.setString(6, "");
             preStmt.addBatch();
             preStmt.clearParameters();
 
-            if(i%100000 == 0) {
+            if(i%10 == 0) {
                 preStmt.executeBatch();
                 preStmt.clearBatch();
                 conn.commit();
             }
-            if(i%1000000 == 0) {
-                System.out.println("insert " + i + "개 완료");
+
+            int percentage = (i * 100) / idx;
+            if (i % (idx / 10) == 0) {
+                System.out.println(table+" insert 진행 상황: " + percentage + "%");
             }
-            i++;
         }
         preStmt.executeBatch();
         preStmt.clearBatch();
         conn.commit();
+
         preStmt.close();
         conn.close();
     }
 
-    private void addBatchPtSeparateTest(String table, Connection conn, PreparedStatement preStmt, List<PtSeparateTestVo> ptSeparateTestVoList) throws SQLException {
+    private void addBatchPtSeparateTest(int idx, String table, Connection conn, PreparedStatement preStmt) throws SQLException {
         conn.setAutoCommit(false);
         int i = 1;
         boolean flag = false;
-        for(PtSeparateTestVo vo : ptSeparateTestVoList) {
-            flag = true;
-            preStmt.setLong(1, vo.getSqlId());
-            preStmt.setLong(2, vo.getSid());
-            preStmt.setLong(3, vo.getSqlNo());
-            preStmt.setString(4, vo.getSqlType());
-            preStmt.setInt(5, vo.getSqlSize());
-            preStmt.setString(6, vo.getSqlText());
-            preStmt.setString(7, vo.getReserved());
-            preStmt.addBatch();
-            preStmt.clearParameters();
 
-            if(i%100000 == 0) {
+        for(int seqId = 1; seqId <= idx; seqId++) {
+            flag = true;
+            String sqlType = sqlTypeInfo.get(Integer.valueOf(Utils.makeRandomInteger(5)));
+            String sqlText = sqlSeparateInfo.get(Integer.valueOf(Utils.makeRandomInteger(7)));
+            int sid = Utils.makeRandomInteger(idx);
+
+            int j = 1;
+            for(String str : splitString(sqlText, 100)) {
+                preStmt.setLong(1, seqId);
+                preStmt.setLong(2, sid);
+                preStmt.setLong(3, j);
+                preStmt.setString(4, sqlType);
+                preStmt.setInt(5, str.length());
+                preStmt.setString(6, str);
+                preStmt.setString(7, "");
+                preStmt.addBatch();
+                preStmt.clearParameters();
+                j++;
+                i++;
+            }
+
+            if(i%1000 == 0) {
                 preStmt.executeBatch();
                 preStmt.clearBatch();
                 conn.commit();
                 flag = false;
             }
-            if(i%1000000 == 0) {
+
+            if(i%1000 == 0) {
                 System.out.println("insert " + i + "개 완료");
             }
-            i++;
+
         }
+
         preStmt.executeBatch();
         preStmt.clearBatch();
         conn.commit();
+
         if(flag){
-            System.out.println(table+" - insert " + i + "개 완료");
+            System.out.println(table+" - insert " + (i-1) + "개 완료");
         }
+
         preStmt.close();
         conn.close();
     }

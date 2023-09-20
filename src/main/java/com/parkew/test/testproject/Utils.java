@@ -2,8 +2,12 @@ package com.parkew.test.testproject;
 
 import com.parkew.test.testproject.postgretest.vo.PtSessTestVo;
 import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.*;
 
@@ -29,23 +33,6 @@ public class Utils {
         return false;
     }
 
-    public static boolean isConnectionInfoFine(String url, String user, String password) {
-
-        if(isNullOrEmpty(url)){
-            return false;
-        }
-
-        if(isNullOrEmpty(user)){
-            return false;
-        }
-
-        if(isNullOrEmpty(password)){
-            return false;
-        }
-
-        return true;
-    }
-
     public static int makeRandomInteger(int range) {
         // Random 객체 생성
         Random rand = new Random();
@@ -56,60 +43,16 @@ public class Utils {
         return randomNumber;
     }
 
-    public static PtSessTestVo makePtSessTestVo(int idx, String str) {
-        String[] strSplit = str.split(",");
-        return PtSessTestVo.insertAll(
-                idx,
-                strSplit[0],
-                strSplit[1],
-                strSplit[2],
-                Integer.valueOf(strSplit[3]),
-                strSplit[4],
-                strSplit[5],
-                strSplit[6],
-                strSplit[7],
-                strSplit[8],
-                strSplit[9],
-                Long.valueOf(strSplit[10]),
-                strSplit[11],
-                strSplit[12],
-                strSplit[13],
-                strSplit[14],
-                Integer.valueOf(strSplit[15]),
-                strSplit[16],
-                strSplit[17],
-                ""
-        );
-    }
+    public static void createRandomTextFile(int size, String filePath, String fileName) {
+        String content = RandomStringUtils.randomAlphabetic(size);
 
-    public static List<PtSessTestVo> makePtSessTestVoList(ResultSet rs) throws Exception{
-        List<PtSessTestVo> ptSessTestVoList = new ArrayList<>();
-
-        while (rs.next()) {
-            ptSessTestVoList.add(PtSessTestVo.insertAll(
-                    rs.getLong("SID"),
-                    rs.getString("USER_ID"),
-                    rs.getString("USER_NAME"),
-                    rs.getString("USER_ROLE"),
-                    rs.getInt("USER_LEVEL"),
-                    rs.getString("USER_PHONE"),
-                    rs.getString("ORG_ONE_NAME"),
-                    rs.getString("ORG_TWO_NAME"),
-                    rs.getString("ORG_THREE_NAME"),
-                    rs.getString("ORG_FOUR_NAME"),
-                    rs.getString("ORG_FIVE_NAME"),
-                    rs.getLong("DB_ID"),
-                    rs.getString("DB_OS_TYPE"),
-                    rs.getString("DB_PROGRAM"),
-                    rs.getString("DB_TYPE"),
-                    rs.getString("DB_IP"),
-                    rs.getInt("DB_PORT"),
-                    rs.getString("DB_INSTANCE"),
-                    rs.getString("DB_SCHEMA"),
-                    rs.getString("RESERVED")
-            ));
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath+fileName));
+            writer.write(content);
+            writer.close();
+            System.out.println("텍스트 파일이 생성되었습니다.");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        return ptSessTestVoList;
     }
 }
